@@ -6,7 +6,7 @@
 ?>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Form Login</title>
+<title>Tourism Predictions</title>
 <style type="text/css">
  body {font-family: Arial, Helvetica, sans-serif;}
 * {box-sizing: border-box;}
@@ -115,7 +115,7 @@
   -moz-animation-play-state:paused;
   -o-animation-play-state:paused;
   animation-play-state:paused; }
-}
+
 
 .image-slider img {
   float: right;
