@@ -16,7 +16,8 @@
        echo "<div align='center'>Password salah! <a href='login.php'>Back</a></div>";
      } else {
      		$_SESSION['username'] = $hasil['username'];
-       	header('location:home.php');
+        $_SESSION['status'] = "login";
+        header('location:home.php');
      	}
    header('login.php');}
 ?>
