@@ -77,7 +77,7 @@
 }
 
 .slider {
-  margin:110px auto;
+  margin:20px auto;
   width: 768px;
   height: 450px;
 }
@@ -93,19 +93,19 @@
 
   /*pengaturan durasi lama tampil gambar bisa di atur di bawah ini*/
   animation-name:slider;
-  animation-duration:25s;
+  animation-duration:20s;
   animation-timing-function: ease-in-out;
   animation-iteration-count:infinite;
   -webkit-animation-name:slider;
-  -webkit-animation-duration:25s;
+  -webkit-animation-duration:20s;
   -webkit-animation-timing-function: ease-in-out;
   -webkit-animation-iteration-count:infinite;
   -moz-animation-name:slider;
-  -moz-animation-duration:25s;
+  -moz-animation-duration:20s;
   -moz-animation-timing-function: ease-in-out;
   -moz-animation-iteration-count:infinite;
   -o-animation-name:slider;
-  -o-animation-duration:25s;
+  -o-animation-duration:20s;
   -o-animation-timing-function: ease-in-out;
   -o-animation-iteration-count:infinite;
 }
@@ -115,7 +115,7 @@
   -moz-animation-play-state:paused;
   -o-animation-play-state:paused;
   animation-play-state:paused; }
-
+}
 
 .image-slider img {
   float: right;
@@ -301,6 +301,7 @@
 }
 </style>
 
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 <body>
@@ -312,7 +313,6 @@
         <img src="image/image3.jpg" alt="Image 3">
         <img src="image/image4.jpg" alt="Image 4">
         <img src="image/image5.jpg" alt="Image 5">
-
       </div>
     </div>
   </div>

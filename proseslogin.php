@@ -5,7 +5,7 @@
 
    require_once("connect.php");
    $username = $_POST['username'];
-   $password = $_POST['password'];   
+   $password = md5($_POST['password']);
    $sql = "SELECT * FROM user WHERE username = '$username'";
    $query = $db->query($sql);
    $hasil = $query->fetch_assoc();
