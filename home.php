@@ -195,10 +195,57 @@
 				echo "</tfoot>";
 			echo "</table>";
 
+			$cek = mysqli_query($conn, "SELECT * FROM predict") or die (mysqli_error($db));
+
+			if(mysqli_num_rows($cek) != 0 ){
+				mysqli_query($conn,"TRUNCATE TABLE predict");
+			}
+
+			$insertpredict = mysqli_query($conn, "INSERT INTO predict (series,arrival) SELECT series,arrival FROM region as r RIGHT OUTER JOIN tourist as t ON r.region_id = t.region_id WHERE r.region_name = '$region_name' ORDER BY t.series DESC LIMIT 1,$span");
+
+			$predict = mysqli_query($conn, "SELECT arrival FROM predict ORDER BY arrival DESC");
+
+			while ($array = mysqli_fetch_array($predict)){
+				$arrival[] = $array['arrival'];
+			}
+
+			$yt = mysqli_query($conn,"SELECT arrival FROM region as r RIGHT OUTER JOIN tourist as t ON r.region_id = t.region_id WHERE r.region_name = '$region_name' ORDER BY t.series DESC LIMIT 1");
+
+			$now = mysqli_fetch_array($yt);
+
+			$predicttourist = 0;
+			$ht = 0;
+			$temp = 0;
+			$weight = $_POST['span'];
+
+			//mencari nilai ht
+			for ($i = 0; $i < $span; $i++){
+				$tourist[$i] = $arrival[$i] * $weight;
+				$temp += $tourist[$i];
+
+				$weight--;
+			}
+
+			$ht = $temp / $span ;
+
+			//mencari nilai alpha
+			$alpha = 0;
+
+			$alpha = 2 / ($span + 1);
+
+			//mencari nilai wema
+			$j = 0;
+			$wema = ($alpha * $now['arrival']) + ((1 - $alpha) * $ht);
+
+			//mencari nilai error
+			$error = abs($now['arrival'] - $wema);
+
 			echo "<br>Prediction 2018: ";
+			echo $wema;
 			echo "<br>Span: ";
 			echo $_POST['span'];
 			echo "<br>Error: ";
+			echo $error;
 			echo "<br>MAPE: ";
 
 
