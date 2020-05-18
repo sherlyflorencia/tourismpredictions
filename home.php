@@ -235,10 +235,13 @@
 
 			//mencari nilai wema
 			$j = 0;
-			$wema = ($alpha * $now['arrival']) + ((1 - $alpha) * $ht);
+			$wema = round(($alpha * $now['arrival']) + ((1 - $alpha) * $ht), 2);
 
 			//mencari nilai error
 			$error = abs($now['arrival'] - $wema);
+
+			//mencari nilai mape
+			$mape = round((($error / $now['arrival']) * 100), 2);
 
 			echo "<br>Prediction 2018: ";
 			echo $wema;
@@ -247,6 +250,7 @@
 			echo "<br>Error: ";
 			echo $error;
 			echo "<br>MAPE: ";
+			echo $mape."%";
 
 
 		}
