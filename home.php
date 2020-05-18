@@ -1,5 +1,6 @@
 <?php
-    require_once("connect.php");
+	require_once("connect.php");
+
 ?>
 
 <?php
@@ -117,6 +118,25 @@
 				</div>
 			</div>
 
+			<div class="form-group row">
+				<label class="col-sm-2 col-form-label">Span</label>
+				<div class="col-sm-10">
+					<select name="span" class="form-control" >
+						<option disabled selected>--Select Span--</option>
+						<option value="1">1</option>
+						<option value="2">2</option>
+						<option value="3">3</option>
+						<option value="4">4</option>
+						<option value="5">5</option>
+						<option value="6">6</option>
+						<option value="7">7</option>
+						<option value="8">8</option>
+						<option value="9">9</option>
+						<option value="10">10</option>
+					</select>
+				</div>
+			</div>
+
 
 			<div class="form-group row">
 				<label class="col-sm-2 col-form-label">&nbsp;</label>
@@ -134,6 +154,7 @@
 			echo "<br><br>";
 
 			$region_name = $_POST['region_name'];
+			$span 		 = $_POST['span'];
 
 
 			echo '<table id="dataTables" class="display" cellspacing="0" width="100%">';
@@ -142,6 +163,7 @@
 						echo "<th>No</th>";
 						echo "<th>Series</th>";
 						echo "<th>Arrival</th>";
+
 					echo "</tr>";
 				echo "</thead>";
 
@@ -153,7 +175,7 @@
 					while($response = $res->fetch_assoc()){
 						echo "<tr>";
 
-						   echo "<td>".$no."</td>";
+						echo "<td>".$no."</td>";
 						echo "<td>".$response['series']."</td>";
 						echo "<td>".$response['arrival']."</td>";
 
@@ -172,6 +194,14 @@
 					echo "</tr>";
 				echo "</tfoot>";
 			echo "</table>";
+
+			echo "<br>Prediction 2018: ";
+			echo "<br>Span: ";
+			echo $_POST['span'];
+			echo "<br>Error: ";
+			echo "<br>MAPE: ";
+
+
 		}
 		?>
 	</div>
@@ -180,7 +210,7 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 	<script src="http://code.jquery.com/jquery-1.12.0.min.js"></script>
-	<script src="//cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js"></script>
+	<script src="http://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js"></script>
 	<script>
 	$(document).ready(function() {
 		$('#dataTables').DataTable();
