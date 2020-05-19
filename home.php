@@ -114,18 +114,6 @@
 				</div>
 			</div>
 
-			<div class="form-group row">
-				<label class="col-sm-2 col-form-label">Year</label>
-				<div class="col-sm-10">
-					<select name="year" class="form-control" >
-						<option disabled selected>--Select Year--</option>
-						<option value="1">2018</option>
-						<option value="2">2017</option>
-						<option value="3">2016</option>
-						<option value="4">2015</option>
-					</select>
-				</div>
-			</div>
 
 			<div class="form-group row">
 				<label class="col-sm-2 col-form-label">Span</label>
@@ -158,8 +146,92 @@
 
 			$region_name = $_POST['region_name'];
 			$span 		 = $_POST['span'];
-			$year		 = $_POST['year'];
+			$spanyear 	 = $_POST['span'];
 
+
+			//cek table arrival
+			$cekarrival = mysqli_query($conn, "SELECT * FROM arrival") or die (mysqli_error($db));
+
+			if(mysqli_num_rows($cekarrival) != 0 ){
+				mysqli_query($conn,"TRUNCATE TABLE arrival");
+			}
+
+			//masukin data ke table arrival
+			$insertarrival = mysqli_query($conn, "INSERT INTO arrival (series,arrival) SELECT series,arrival FROM region as r RIGHT OUTER JOIN tourist as t ON r.region_id = t.region_id WHERE r.region_name = '$region_name' ORDER BY t.series ASC");
+
+			//cek table predict
+			$cekpredict = mysqli_query($conn, "SELECT * FROM predict") or die (mysqli_error($db));
+
+			if(mysqli_num_rows($cekpredict) != 0 ){
+				mysqli_query($conn,"TRUNCATE TABLE predict");
+			}
+
+			//pengulangan sampai data habis
+			$alldata = 10 - $span;
+			$limit = 0;
+
+			for ($x = 0; $x <= $alldata; $x++){
+
+				//ambil data arrival sesuai span
+				$data = mysqli_query($conn, "SELECT arrival FROM arrival ORDER BY arrival.arrival ASC LIMIT $limit,$span");
+
+				while ($array = mysqli_fetch_array($data)){
+					$arrival[] = $array['arrival'];
+				}
+
+				//limit akan bertambah
+				$limit ++;
+
+				//ambil tahun
+				$temp_year = mysqli_query($conn, "SELECT series FROM arrival LIMIT $spanyear,1");
+				$year = mysqli_fetch_array ($temp_year);
+				$year_string  = implode($year);
+
+				//ambil nilai Yt
+				$yt = mysqli_query($conn,"SELECT arrival FROM arrival LIMIT $spanyear,1");
+				$now = mysqli_fetch_array($yt);
+
+				//span year akan bertambah
+				$spanyear++;
+
+				$predicttourist = 0;
+				$ht = 0;
+				$temp = 0;
+				$weight = $_POST['span'];
+
+				//data*bobot
+				for ($i = 0; $i < $span; $i++){
+					$tourist[$i] = $arrival[$i] * $weight;
+					$temp += $tourist[$i];
+
+					$weight--;
+				}
+
+				//mencari nilai bagi
+				$jumlah = 0;
+				for ($j = 1; $j <= $span; $j++){
+					$jumlah += $j;
+				}
+
+				//mencari nilai Ht
+				$ht = $temp / $jumlah ;
+
+				//mencari nilai alpha
+				$alpha = 0;
+				$alpha = 2 / ($span + 1);
+
+				//mencari nilai wema
+				$wema = round(($alpha * $now['arrival']) + ((1 - $alpha) * $ht), 2);
+
+				//mencari nilai error
+				$error = abs($now['arrival'] - $wema);
+
+				//input table predict
+				$insertpredict = mysqli_query($conn, "INSERT INTO predict(series,wema,error) VALUES ('$year_string', '$wema', '$error')");
+			}
+
+
+			//output
 
 			echo '<table id="dataTables" class="display" cellspacing="0" width="100%">';
 				echo "<thead>";
@@ -167,13 +239,15 @@
 						echo "<th>No</th>";
 						echo "<th>Series</th>";
 						echo "<th>Arrival</th>";
+						echo "<th>Predict</th>";
+						echo "<th>Error</th>";
 
 					echo "</tr>";
 				echo "</thead>";
 
 				echo "<tbody>";
 				$no = 1;
-				$res = $conn->query("SELECT * FROM region as r RIGHT OUTER JOIN tourist as t ON r.region_id = t.region_id WHERE r.region_name = '$region_name' ");
+				$res = $conn->query("SELECT * FROM predict LEFT JOIN arrival ON predict.series = arrival.series UNION SELECT * FROM predict RIGHT JOIN arrival ON predict.series = arrival.series ORDER BY 5");
 
 
 					while($response = $res->fetch_assoc()){
@@ -182,7 +256,8 @@
 						echo "<td>".$no."</td>";
 						echo "<td>".$response['series']."</td>";
 						echo "<td>".$response['arrival']."</td>";
-
+						echo "<td>".$response['wema']."</td>";
+						echo "<td>".$response['error']."</td>";
 						echo "</tr>";
 
 						$no++;
@@ -195,74 +270,43 @@
 						echo "<th>No</th>";
 						echo "<th>Series</th>";
 						echo "<th>Arrival</th>";
+						echo "<th>Predict</th>";
+						echo "<th>Error</th>";
 					echo "</tr>";
 				echo "</tfoot>";
 			echo "</table>";
 
-			$cek = mysqli_query($conn, "SELECT * FROM predict") or die (mysqli_error($db));
-
-			if(mysqli_num_rows($cek) != 0 ){
-				mysqli_query($conn,"TRUNCATE TABLE predict");
-			}
-
-			$insertpredict = mysqli_query($conn, "INSERT INTO predict (series,arrival) SELECT series,arrival FROM region as r RIGHT OUTER JOIN tourist as t ON r.region_id = t.region_id WHERE r.region_name = '$region_name' ORDER BY t.series DESC LIMIT $year,$span");
-
-			$predict = mysqli_query($conn, "SELECT arrival FROM predict ORDER BY arrival DESC");
-
-			while ($array = mysqli_fetch_array($predict)){
-				$arrival[] = $array['arrival'];
-			}
-
-			$yt = mysqli_query($conn,"SELECT arrival FROM region as r RIGHT OUTER JOIN tourist as t ON r.region_id = t.region_id WHERE r.region_name = '$region_name' ORDER BY t.series DESC LIMIT 1");
-
-			$now = mysqli_fetch_array($yt);
-
-			$predicttourist = 0;
-			$ht = 0;
-			$temp = 0;
-			$weight = $_POST['span'];
-
-			//mencari nilai ht
-			for ($i = 0; $i < $span; $i++){
-				$tourist[$i] = $arrival[$i] * $weight;
-				$temp += $tourist[$i];
-
-				$weight--;
-			}
-
-			$ht = $temp / $span ;
-
-			//mencari nilai alpha
-			$alpha = 0;
-
-			$alpha = 2 / ($span + 1);
-
-			//mencari nilai wema
-			$j = 0;
-			$wema = round(($alpha * $now['arrival']) + ((1 - $alpha) * $ht), 2);
-
-			//mencari nilai error
-			$error = abs($now['arrival'] - $wema);
+			// echo "<br>Year: ";
+			// echo $year_output;
+			// echo "<br>Prediction: ";
+			// echo $wema;
+			// echo "<br>Span: ";
+			// echo $_POST['span'];
+			// echo "<br>Error: ";
+			// echo $error;
 
 			//mencari nilai mape
-			$mape = round((($error / $now['arrival']) * 100), 2);
+			$arrivalmape = mysqli_query($conn, "SELECT arrival FROM arrival ORDER BY series ASC LIMIT $span");
 
-			//mengambil tahun
-			$year_output = 0;
-			$series = mysqli_query($conn, "SELECT series FROM predict LIMIT 1");
-			$series_output = mysqli_fetch_array($series);
+			while ($arrivalsigma = mysqli_fetch_array($arrivalmape)){
+				$arvsigma[] = $arrivalsigma['arrival'];
+			}
 
-			$year_output = $series_output['series'] + 1;
+			$errormape = mysqli_query($conn, "SELECT error FROM predict ORDER BY series ASC LIMIT $span");
 
-			//output
-			echo "<br>Year: ";
-			echo $year_output;
-			echo "<br>Prediction: ";
-			echo $wema;
-			echo "<br>Span: ";
-			echo $_POST['span'];
-			echo "<br>Error: ";
-			echo $error;
+			while ($errorsigma = mysqli_fetch_array($errormape)){
+				$errsigma[] = $errorsigma['error'];
+			}
+
+			$allsigma = 0;
+
+			for($k = 0; $k <= $alldata; $k++){
+				$sigma[$k] =  $errorsigma[$k] / $arvsigma[$k] ;
+				$allsigma += $sigma[$k];
+			}
+
+			$mape = round(((1/$alldata)*100), 2);
+
 			echo "<br>MAPE: ";
 			echo $mape."%";
 
