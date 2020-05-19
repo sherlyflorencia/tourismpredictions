@@ -278,14 +278,6 @@
 				echo "</tfoot>";
 			echo "</table>";
 
-			// echo "<br>Year: ";
-			// echo $year_output;
-			// echo "<br>Prediction: ";
-			// echo $wema;
-			// echo "<br>Span: ";
-			// echo $_POST['span'];
-			// echo "<br>Error: ";
-			// echo $error;
 
 			//mencari nilai mape
 			$arrivalmape = mysqli_query($conn, "SELECT arrival FROM arrival ORDER BY series ASC LIMIT $span,$alldata");
