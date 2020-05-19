@@ -141,6 +141,8 @@
 		if(isset($_POST['submit'])){
 			echo "<br>Region: ";
 			echo $_POST['region_name'];
+			echo "<br>Span: ";
+			echo $_POST['span'];
 
 			echo "<br><br>";
 
@@ -167,10 +169,10 @@
 			}
 
 			//pengulangan sampai data habis
-			$alldata = 10 - $span;
+			$alldata = ((10 - $span) + 1);
 			$limit = 0;
 
-			for ($x = 0; $x <= $alldata; $x++){
+			for ($x = 0; $x < $alldata; $x++){
 
 				//ambil data arrival sesuai span
 				$data = mysqli_query($conn, "SELECT arrival FROM arrival ORDER BY arrival.arrival ASC LIMIT $limit,$span");
@@ -286,13 +288,13 @@
 			// echo $error;
 
 			//mencari nilai mape
-			$arrivalmape = mysqli_query($conn, "SELECT arrival FROM arrival ORDER BY series ASC LIMIT $span");
+			$arrivalmape = mysqli_query($conn, "SELECT arrival FROM arrival ORDER BY series ASC LIMIT $span,$alldata");
 
 			while ($arrivalsigma = mysqli_fetch_array($arrivalmape)){
 				$arvsigma[] = $arrivalsigma['arrival'];
 			}
 
-			$errormape = mysqli_query($conn, "SELECT error FROM predict ORDER BY series ASC LIMIT $span");
+			$errormape = mysqli_query($conn, "SELECT error FROM predict ORDER BY series ASC");
 
 			while ($errorsigma = mysqli_fetch_array($errormape)){
 				$errsigma[] = $errorsigma['error'];
@@ -300,7 +302,7 @@
 
 			$allsigma = 0;
 
-			for($k = 0; $k <= $alldata; $k++){
+			for($k = 0; $k < $alldata; $k++){
 				$sigma[$k] =  $errorsigma[$k] / $arvsigma[$k] ;
 				$allsigma += $sigma[$k];
 			}
