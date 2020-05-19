@@ -119,20 +119,27 @@
 			</div>
 
 			<div class="form-group row">
+				<label class="col-sm-2 col-form-label">Year</label>
+				<div class="col-sm-10">
+					<select name="year" class="form-control" >
+						<option disabled selected>--Select Year--</option>
+						<option value="1">2018</option>
+						<option value="2">2017</option>
+						<option value="3">2016</option>
+						<option value="4">2015</option>
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group row">
 				<label class="col-sm-2 col-form-label">Span</label>
 				<div class="col-sm-10">
 					<select name="span" class="form-control" >
 						<option disabled selected>--Select Span--</option>
-						<option value="1">1</option>
 						<option value="2">2</option>
 						<option value="3">3</option>
 						<option value="4">4</option>
 						<option value="5">5</option>
-						<option value="6">6</option>
-						<option value="7">7</option>
-						<option value="8">8</option>
-						<option value="9">9</option>
-						<option value="10">10</option>
 					</select>
 				</div>
 			</div>
@@ -155,6 +162,7 @@
 
 			$region_name = $_POST['region_name'];
 			$span 		 = $_POST['span'];
+			$year		 = $_POST['year'];
 
 
 			echo '<table id="dataTables" class="display" cellspacing="0" width="100%">';
@@ -201,7 +209,7 @@
 				mysqli_query($conn,"TRUNCATE TABLE predict");
 			}
 
-			$insertpredict = mysqli_query($conn, "INSERT INTO predict (series,arrival) SELECT series,arrival FROM region as r RIGHT OUTER JOIN tourist as t ON r.region_id = t.region_id WHERE r.region_name = '$region_name' ORDER BY t.series DESC LIMIT 1,$span");
+			$insertpredict = mysqli_query($conn, "INSERT INTO predict (series,arrival) SELECT series,arrival FROM region as r RIGHT OUTER JOIN tourist as t ON r.region_id = t.region_id WHERE r.region_name = '$region_name' ORDER BY t.series DESC LIMIT $year,$span");
 
 			$predict = mysqli_query($conn, "SELECT arrival FROM predict ORDER BY arrival DESC");
 
@@ -243,7 +251,17 @@
 			//mencari nilai mape
 			$mape = round((($error / $now['arrival']) * 100), 2);
 
-			echo "<br>Prediction 2018: ";
+			//mengambil tahun
+			$year_output = 0;
+			$series = mysqli_query($conn, "SELECT series FROM predict LIMIT 1");
+			$series_output = mysqli_fetch_array($series);
+
+			$year_output = $series_output['series'] + 1;
+
+			//output
+			echo "<br>Year: ";
+			echo $year_output;
+			echo "<br>Prediction: ";
 			echo $wema;
 			echo "<br>Span: ";
 			echo $_POST['span'];
