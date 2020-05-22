@@ -96,7 +96,7 @@
 				echo "Failed to connect to MySQL: " . $conn->connect_error;
 			}
 
-			$sql = $conn->query("SELECT * FROM region");
+			$sql = $conn->query("SELECT * FROM tbl_region");
 		?>
 		<form action="home.php" method="post">
 
@@ -152,89 +152,153 @@
 
 
 			//cek table arrival
-			$cekarrival = mysqli_query($conn, "SELECT * FROM arrival") or die (mysqli_error($db));
+			$cekarrival = mysqli_query($conn, "SELECT * FROM tbl_arrival") or die (mysqli_error($db));
 
 			if(mysqli_num_rows($cekarrival) != 0 ){
-				mysqli_query($conn,"TRUNCATE TABLE arrival");
+				mysqli_query($conn,"TRUNCATE TABLE tbl_arrival");
 			}
 
 			//masukin data ke table arrival
-			$insertarrival = mysqli_query($conn, "INSERT INTO arrival (series,arrival) SELECT series,arrival FROM region as r RIGHT OUTER JOIN tourist as t ON r.region_id = t.region_id WHERE r.region_name = '$region_name' ORDER BY t.series ASC");
+			$insertarrival = mysqli_query($conn, "INSERT INTO tbl_arrival (series,arrival) SELECT series,arrival FROM tbl_region as r RIGHT OUTER JOIN tbl_tourist as t ON r.region_id = t.region_id WHERE r.region_name = '$region_name' ORDER BY t.series ASC");
+
+			//cek table departure
+			$cekdeparture = mysqli_query($conn, "SELECT * FROM tbl_departure") or die (mysqli_error($db));
+
+			if(mysqli_num_rows($cekdeparture) != 0 ){
+				mysqli_query($conn,"TRUNCATE TABLE tbl_departure");
+			}
+
+			//masukin data ke table departure
+			$insertdeparture = mysqli_query($conn, "INSERT INTO tbl_departure (series,departure) SELECT series,departure FROM tbl_region as r RIGHT OUTER JOIN tbl_tourist as t ON r.region_id = t.region_id WHERE r.region_name = '$region_name' ORDER BY t.series ASC");
+
+			//cek table expenditure in
+			$cekexpenditurein = mysqli_query($conn, "SELECT * FROM tbl_expenditure_in") or die (mysqli_error($db));
+
+			if(mysqli_num_rows($cekexpenditurein) != 0 ){
+				mysqli_query($conn,"TRUNCATE TABLE tbl_expenditure_in");
+			}
+
+			//masukin data ke table expenditure in
+			$insertexpenditurein = mysqli_query($conn, "INSERT INTO tbl_expenditure_in (series,expenditure_in) SELECT series,expenditure_in FROM tbl_region as r RIGHT OUTER JOIN tbl_tourist as t ON r.region_id = t.region_id WHERE r.region_name = '$region_name' ORDER BY t.series ASC");
+
+			//cek table expenditure out
+			$cekexpenditureout = mysqli_query($conn, "SELECT * FROM tbl_expenditure_out") or die (mysqli_error($db));
+
+			if(mysqli_num_rows($cekexpenditureout) != 0 ){
+				mysqli_query($conn,"TRUNCATE TABLE tbl_expenditure_out");
+			}
+
+			//masukin data ke table expenditure out
+			$insertexpenditureout = mysqli_query($conn, "INSERT INTO tbl_expenditure_out (series,expenditure_out) SELECT series,expenditure_out FROM tbl_region as r RIGHT OUTER JOIN tbl_tourist as t ON r.region_id = t.region_id WHERE r.region_name = '$region_name' ORDER BY t.series ASC");
 
 			//cek table predict
-			$cekpredict = mysqli_query($conn, "SELECT * FROM predict") or die (mysqli_error($db));
+			$cekpredict = mysqli_query($conn, "SELECT * FROM tbl_predict") or die (mysqli_error($db));
 
 			if(mysqli_num_rows($cekpredict) != 0 ){
-				mysqli_query($conn,"TRUNCATE TABLE predict");
+				mysqli_query($conn,"TRUNCATE TABLE tbl_predict");
 			}
 
 			//pengulangan sampai data habis
-			$alldata = ((10 - $span) + 1);
+			$alldata = (11 - $span);
 			$limit = 0;
 
 			for ($x = 0; $x < $alldata; $x++){
 
 				//ambil data arrival sesuai span
-				$data = mysqli_query($conn, "SELECT arrival FROM arrival ORDER BY arrival.arrival ASC LIMIT $limit,$span");
+				$dataarrival = mysqli_query($conn, "SELECT arrival FROM tbl_arrival ORDER BY tbl_arrival.arrival ASC LIMIT $limit,$span");
 
-				while ($array = mysqli_fetch_array($data)){
-					$arrival[] = $array['arrival'];
+				while ($arrayarrival = mysqli_fetch_array($dataarrival)){
+					$arrival[] = $arrayarrival['arrival'];
+				}
+
+				//ambil data departure sesuai span
+				$datadeparture = mysqli_query($conn, "SELECT departure FROM tbl_departure ORDER BY tbl_departure.departure ASC LIMIT $limit,$span");
+
+				while ($arraydeparture = mysqli_fetch_array($datadeparture)){
+					$departure[] = $arraydeparture['departure'];
 				}
 
 				//limit akan bertambah
 				$limit ++;
 
 				//ambil tahun
-				$temp_year = mysqli_query($conn, "SELECT series FROM arrival LIMIT $spanyear,1");
+				$temp_year = mysqli_query($conn, "SELECT series FROM tbl_arrival LIMIT $spanyear,1");
 				$year = mysqli_fetch_array ($temp_year);
 				$year_string  = implode($year);
 
-				//ambil nilai Yt
-				$yt = mysqli_query($conn,"SELECT arrival FROM arrival LIMIT $spanyear,1");
-				$now = mysqli_fetch_array($yt);
+				//ambil nilai Yt arrival
+				$ytarrival = mysqli_query($conn,"SELECT arrival FROM tbl_arrival LIMIT $spanyear,1");
+				$now_arrival = mysqli_fetch_array($ytarrival);
+
+				//ambil nilai Yt departure
+				$ytdeparture = mysqli_query($conn,"SELECT departure FROM tbl_departure LIMIT $spanyear,1");
+				$now_departure = mysqli_fetch_array($ytdeparture);
 
 				//span year akan bertambah
 				$spanyear++;
 
+				//arrival
 				$predicttourist = 0;
-				$ht = 0;
-				$temp = 0;
-				$weight = $_POST['span'];
+				$htarrival = 0;
+				$temparrival = 0;
+				$weightarrival = $_POST['span'];
 
-				//data*bobot
+				//departure
+				$ht_departure = 0;
+				$temp_departure = 0;
+				$weight_departure = $_POST['span'];
+
+				//data*bobot arrival
 				for ($i = 0; $i < $span; $i++){
-					$tourist[$i] = $arrival[$i] * $weight;
-					$temp += $tourist[$i];
+					$touristarrival[$i] = $arrival[$i] * $weightarrival;
+					$temparrival += $touristarrival[$i];
 
-					$weight--;
+					$weightarrival--;
+				}
+
+				//data*bobot departure
+				for ($j = 0; $j < $span; $j++){
+					$tourist_departure[$j] = $departure[$j] * $weight_departure;
+					$temp_departure += $tourist_departure[$j];
+
+					$weight_departure--;
 				}
 
 				//mencari nilai bagi
 				$jumlah = 0;
-				for ($j = 1; $j <= $span; $j++){
-					$jumlah += $j;
+				for ($k = 1; $k <= $span; $k++){
+					$jumlah += $k;
 				}
 
-				//mencari nilai Ht
-				$ht = $temp / $jumlah ;
+				//mencari nilai Ht arrival
+				$htarrival = $temparrival / $jumlah ;
+
+				//mencari nilai Ht departure
+				$ht_departure = $temp_departure / $jumlah ;
 
 				//mencari nilai alpha
 				$alpha = 0;
 				$alpha = 2 / ($span + 1);
 
-				//mencari nilai wema
-				$wema = round(($alpha * $now['arrival']) + ((1 - $alpha) * $ht), 2);
+				//mencari nilai wema arrival
+				$wema_arrival = round(($alpha * $now_arrival['arrival']) + ((1 - $alpha) * $htarrival), 2);
 
-				//mencari nilai error
-				$error = abs($now['arrival'] - $wema);
+				//mencari nilai error arrival
+				$error_arrival = abs($now_arrival['arrival'] - $wema_arrival);
+
+				//mencari nilai wema departure
+				$wema_departure = round(($alpha * $now_departure['departure']) + ((1 - $alpha) * $ht_departure), 2);
+
+				//mencari nilai error departure
+				$error_departure = abs($now_departure['departure'] - $wema_departure);
 
 				//input table predict
-				$insertpredict = mysqli_query($conn, "INSERT INTO predict(series,wema,error) VALUES ('$year_string', '$wema', '$error')");
+				$insertpredict = mysqli_query($conn, "INSERT INTO tbl_predict(series,wema_arrival,error_arrival,wema_departure,error_departure) VALUES ('$year_string', '$wema_arrival', '$error_arrival','$wema_departure','$error_departure')");
 			}
 
 
-			//output
-
+			//output arrival
+			echo '<h5 align="center">Arrival</h5>';
 			echo '<table id="dataTables" class="display" cellspacing="0" width="100%">';
 				echo "<thead>";
 					echo "<tr>";
@@ -249,7 +313,7 @@
 
 				echo "<tbody>";
 				$no = 1;
-				$res = $conn->query("SELECT * FROM predict LEFT JOIN arrival ON predict.series = arrival.series UNION SELECT * FROM predict RIGHT JOIN arrival ON predict.series = arrival.series ORDER BY 5");
+				$res = $conn->query("SELECT * FROM tbl_predict LEFT JOIN tbl_arrival ON tbl_predict.series = tbl_arrival.series UNION SELECT * FROM tbl_predict RIGHT JOIN tbl_arrival ON tbl_predict.series = tbl_arrival.series ORDER BY 7");
 
 
 					while($response = $res->fetch_assoc()){
@@ -258,8 +322,8 @@
 						echo "<td>".$no."</td>";
 						echo "<td>".$response['series']."</td>";
 						echo "<td>".$response['arrival']."</td>";
-						echo "<td>".$response['wema']."</td>";
-						echo "<td>".$response['error']."</td>";
+						echo "<td>".$response['wema_arrival']."</td>";
+						echo "<td>".$response['error_arrival']."</td>";
 						echo "</tr>";
 
 						$no++;
@@ -279,31 +343,100 @@
 			echo "</table>";
 
 
-			//mencari nilai mape
-			$arrivalmape = mysqli_query($conn, "SELECT arrival FROM arrival ORDER BY series ASC LIMIT $span,$alldata");
+			//mencari nilai mape arrival
+			$arrivalmape = mysqli_query($conn, "SELECT arrival FROM tbl_arrival ORDER BY series ASC LIMIT $span,$alldata");
 
 			while ($arrivalsigma = mysqli_fetch_array($arrivalmape)){
 				$arvsigma[] = $arrivalsigma['arrival'];
 			}
 
-			$errormape = mysqli_query($conn, "SELECT error FROM predict ORDER BY series ASC");
+			$errormape_arrival = mysqli_query($conn, "SELECT error_arrival FROM tbl_predict ORDER BY series ASC");
 
-			while ($errorsigma = mysqli_fetch_array($errormape)){
-				$errsigma[] = $errorsigma['error'];
+			while ($errorsigma_arrival = mysqli_fetch_array($errormape_arrival)){
+				$errsigma_arrival[] = $errorsigma_arrival['error_arrival'];
 			}
 
-			$allsigma = 0;
+			$allsigma_arrival = 0;
 
-			for($k = 0; $k < $alldata; $k++){
-				$sigma[$k] =  $errorsigma[$k] / $arvsigma[$k] ;
-				$allsigma += $sigma[$k];
+			for($w = 0; $w < $alldata; $w++){
+				$sigma_arrival[$w] =  $errsigma_arrival[$w] / $arvsigma[$w];
+				$allsigma_arrival += $sigma_arrival[$w];
 			}
 
-			$mape = round(((1/$alldata)*100), 2);
+			$mape_arrival = round((((1/$alldata)*$allsigma_arrival)*100), 2);
 
 			echo "<br>MAPE: ";
-			echo $mape."%";
+			echo $mape_arrival."%";
 
+			//output departure
+			echo '<h5 align="center">Departure</h5>';
+			echo '<table id="dataTablesdeparture" class="display" cellspacing="0" width="100%">';
+				echo "<thead>";
+					echo "<tr>";
+						echo "<th>No</th>";
+						echo "<th>Series</th>";
+						echo "<th>Departure</th>";
+						echo "<th>Predict</th>";
+						echo "<th>Error</th>";
+
+					echo "</tr>";
+				echo "</thead>";
+
+				echo "<tbody>";
+				$no = 1;
+				$res = $conn->query("SELECT * FROM tbl_predict LEFT JOIN tbl_departure ON tbl_predict.series = tbl_departure.series UNION SELECT * FROM tbl_predict RIGHT JOIN tbl_departure ON tbl_predict.series = tbl_departure.series ORDER BY 7");
+
+
+					while($response = $res->fetch_assoc()){
+						echo "<tr>";
+
+						echo "<td>".$no."</td>";
+						echo "<td>".$response['series']."</td>";
+						echo "<td>".$response['departure']."</td>";
+						echo "<td>".$response['wema_departure']."</td>";
+						echo "<td>".$response['error_departure']."</td>";
+						echo "</tr>";
+
+						$no++;
+					}
+
+
+				echo "</tbody>";
+				echo "<tfoot>";
+					echo "<tr>";
+						echo "<th>No</th>";
+						echo "<th>Series</th>";
+						echo "<th>Departure</th>";
+						echo "<th>Predict</th>";
+						echo "<th>Error</th>";
+					echo "</tr>";
+				echo "</tfoot>";
+			echo "</table>";
+
+			//mencari nilai mape departure
+			$departure_all = mysqli_query($conn, "SELECT departure FROM tbl_departure ORDER BY series ASC LIMIT $span,$alldata");
+
+			while ($departure_sigma = mysqli_fetch_array($departure_all)){
+				$depsigma[] = $departure_sigma['departure'];
+			}
+
+			$errormape_departure = mysqli_query($conn, "SELECT error_departure FROM tbl_predict ORDER BY series ASC");
+
+			while ($errorsigma_departure = mysqli_fetch_array($errormape_departure)){
+				$errsigma_departure[] = $errorsigma_departure['error_departure'];
+			}
+
+			$allsigma_departure = 0;
+
+			for($x = 0; $x < $alldata; $x++){
+				$sigma_departure[$x] =  $errsigma_departure[$x] / $depsigma[$x];
+				$allsigma_departure += $sigma_departure[$x];
+			}
+
+			$mape_departure = round((((1/$alldata)*$allsigma_departure)*100), 2);
+
+			echo "<br>MAPE: ";
+			echo $mape_departure."%";
 
 		}
 		?>
@@ -317,6 +450,11 @@
 	<script>
 	$(document).ready(function() {
 		$('#dataTables').DataTable();
+	} );
+	</script>
+	<script>
+	$(document).ready(function() {
+		$('#dataTablesdeparture').DataTable();
 	} );
 	</script>
     </body>

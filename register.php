@@ -49,10 +49,10 @@
             $date_of_birth		= $_POST['date_of_birth'];
             $country            = $_POST['country'];
 
-			$cek = mysqli_query($db, "SELECT * FROM user WHERE username='$username'") or die(mysqli_error($db));
+			$cek = mysqli_query($db, "SELECT * FROM tbl_user WHERE username='$username'") or die(mysqli_error($db));
 
 			if(mysqli_num_rows($cek) == 0){
-				$sql = mysqli_query($db, "INSERT INTO user(full_name, email, username, password, date_of_birth, country) VALUES('$full_name', '$email', '$username', '$password', '$date_of_birth', '$country')") or die(mysqli_error($db));
+				$sql = mysqli_query($db, "INSERT INTO tbl_user(full_name, email, username, password, date_of_birth, country) VALUES('$full_name', '$email', '$username', '$password', '$date_of_birth', '$country')") or die(mysqli_error($db));
 
 				if($sql){
 					echo '<script>alert("Silahkan login kembali."); document.location="login.php";</script>';
