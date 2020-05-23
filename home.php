@@ -10,7 +10,7 @@
         $username = $_SESSION['username'];
     }
 
-    $timeout = 5;
+    $timeout = 30;
     $logout_redirect_url = "login.php";
 
     $timeout = $timeout * 60;
@@ -313,7 +313,7 @@
 
 				echo "<tbody>";
 				$no = 1;
-				$res = $conn->query("SELECT * FROM tbl_predict LEFT JOIN tbl_arrival ON tbl_predict.series = tbl_arrival.series UNION SELECT * FROM tbl_predict RIGHT JOIN tbl_arrival ON tbl_predict.series = tbl_arrival.series ORDER BY 7");
+				$res = $conn->query("SELECT * FROM tbl_predict LEFT JOIN tbl_arrival ON tbl_predict.series = tbl_arrival.series UNION SELECT * FROM tbl_predict RIGHT JOIN tbl_arrival ON tbl_predict.series = tbl_arrival.series ORDER BY 11");
 
 
 					while($response = $res->fetch_assoc()){
@@ -384,7 +384,7 @@
 
 				echo "<tbody>";
 				$no = 1;
-				$res = $conn->query("SELECT * FROM tbl_predict LEFT JOIN tbl_departure ON tbl_predict.series = tbl_departure.series UNION SELECT * FROM tbl_predict RIGHT JOIN tbl_departure ON tbl_predict.series = tbl_departure.series ORDER BY 7");
+				$res = $conn->query("SELECT * FROM tbl_predict LEFT JOIN tbl_departure ON tbl_predict.series = tbl_departure.series UNION SELECT * FROM tbl_predict RIGHT JOIN tbl_departure ON tbl_predict.series = tbl_departure.series ORDER BY 11");
 
 
 					while($response = $res->fetch_assoc()){
