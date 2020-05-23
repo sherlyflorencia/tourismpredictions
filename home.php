@@ -225,6 +225,13 @@
 					$expenditure_in[] = $array_expenditure_in['expenditure_in'];
 				}
 
+				//ambil data expenditure out sesuai span
+				$data_expenditure_out = mysqli_query($conn, "SELECT expenditure_out FROM tbl_expenditure_out ORDER BY tbl_expenditure_out.expenditure_out ASC LIMIT $limit,$span");
+
+				while ($array_expenditure_out = mysqli_fetch_array($data_expenditure_out)){
+					$expenditure_out[] = $array_expenditure_out['expenditure_out'];
+				}
+
 				//limit akan bertambah
 				$limit ++;
 
@@ -245,6 +252,10 @@
 				$yt_expenditure_in = mysqli_query($conn,"SELECT expenditure_in FROM tbl_expenditure_in LIMIT $spanyear,1");
 				$now_expenditure_in = mysqli_fetch_array($yt_expenditure_in);
 
+				//ambil nilai Yt expenditure out
+				$yt_expenditure_out = mysqli_query($conn,"SELECT expenditure_out FROM tbl_expenditure_out LIMIT $spanyear,1");
+				$now_expenditure_out = mysqli_fetch_array($yt_expenditure_out);
+
 				//span year akan bertambah
 				$spanyear++;
 
@@ -259,10 +270,15 @@
 				$temp_departure = 0;
 				$weight_departure = $_POST['span'];
 
-				//expenditure_in
+				//expenditure in
 				$ht_expenditure_in = 0;
 				$temp_expenditure_in = 0;
 				$weight_expenditure_in = $_POST['span'];
+
+				//expenditure out
+				$ht_expenditure_out = 0;
+				$temp_expenditure_out = 0;
+				$weight_expenditure_out = $_POST['span'];
 
 				//data*bobot arrival
 				for ($i = 0; $i < $span; $i++){
@@ -288,6 +304,14 @@
 					$weight_expenditure_in--;
 				}
 
+				//data*bobot expenditure out
+				for ($l = 0; $l < $span; $l++){
+					$tourist_expenditure_out[$l] = $expenditure_out[$l] * $weight_expenditure_out;
+					$temp_expenditure_out += $tourist_expenditure_out[$l];
+
+					$weight_expenditure_out--;
+				}
+
 				//mencari nilai bagi
 				$jumlah = 0;
 				for ($m = 1; $m <= $span; $m++){
@@ -302,6 +326,9 @@
 
 				//mencari nilai Ht expenditure in
 				$ht_expenditure_in = $temp_expenditure_in/ $jumlah ;
+
+				//mencari nilai Ht expenditure out
+				$ht_expenditure_out = $temp_expenditure_out/ $jumlah ;
 
 				//mencari nilai alpha
 				$alpha = 0;
@@ -322,16 +349,24 @@
 				//mencari nilai wema expenditure in
 				$wema_expenditure_in = round(($alpha * $now_expenditure_in['expenditure_in']) + ((1 - $alpha) * $ht_expenditure_in), 2);
 
-				//mencari nilai error departure
+				//mencari nilai error expenditure in
 				$error_expenditure_in = abs($now_expenditure_in['expenditure_in'] - $wema_expenditure_in);
 
+				//mencari nilai wema expenditure out
+				$wema_expenditure_out = round(($alpha * $now_expenditure_out['expenditure_out']) + ((1 - $alpha) * $ht_expenditure_out), 2);
+
+				//mencari nilai error expenditure out
+				$error_expenditure_out = abs($now_expenditure_out['expenditure_out'] - $wema_expenditure_out);
+
 				//input table predict
-				$insertpredict = mysqli_query($conn, "INSERT INTO tbl_predict(series,wema_arrival,error_arrival,wema_departure,error_departure,wema_expenditure_in,error_expenditure_in) VALUES ('$year_string', '$wema_arrival', '$error_arrival','$wema_departure','$error_departure','$wema_expenditure_in','$error_expenditure_in')");
+				$insertpredict = mysqli_query($conn, "INSERT INTO tbl_predict(series,wema_arrival,error_arrival,wema_departure,error_departure,wema_expenditure_in,error_expenditure_in,wema_expenditure_out,error_expenditure_out) VALUES ('$year_string', '$wema_arrival', '$error_arrival','$wema_departure','$error_departure','$wema_expenditure_in','$error_expenditure_in','$wema_expenditure_out','$error_expenditure_out')");
 			}
 
+			echo '<h4 align="center">Inbound Tourism</h4>';
 
+			echo '<hr>';
 			//output arrival
-			echo '<h5 align="center">Arrival - Thousands</h5>';
+			echo '<h6 align="center">Arrival - Thousands</h6>';
 			echo '<table id="dataTables" class="display" cellspacing="0" width="100%">';
 				echo "<thead>";
 					echo "<tr>";
@@ -401,78 +436,8 @@
 			echo "<br>MAPE: ";
 			echo $mape_arrival."%";
 
-			//output departure
-			echo '<h5 align="center">Departure - Thousands</h5>';
-			echo '<table id="dataTablesdeparture" class="display" cellspacing="0" width="100%">';
-				echo "<thead>";
-					echo "<tr>";
-						echo "<th>No</th>";
-						echo "<th>Series</th>";
-						echo "<th>Departure</th>";
-						echo "<th>Predict</th>";
-						echo "<th>Error</th>";
-
-					echo "</tr>";
-				echo "</thead>";
-
-				echo "<tbody>";
-				$no = 1;
-				$res = $conn->query("SELECT * FROM tbl_predict LEFT JOIN tbl_departure ON tbl_predict.series = tbl_departure.series UNION SELECT * FROM tbl_predict RIGHT JOIN tbl_departure ON tbl_predict.series = tbl_departure.series ORDER BY 11");
-
-
-					while($response = $res->fetch_assoc()){
-						echo "<tr>";
-
-						echo "<td>".$no."</td>";
-						echo "<td>".$response['series']."</td>";
-						echo "<td>".$response['departure']."</td>";
-						echo "<td>".$response['wema_departure']."</td>";
-						echo "<td>".$response['error_departure']."</td>";
-						echo "</tr>";
-
-						$no++;
-					}
-
-
-				echo "</tbody>";
-				echo "<tfoot>";
-					echo "<tr>";
-						echo "<th>No</th>";
-						echo "<th>Series</th>";
-						echo "<th>Departure</th>";
-						echo "<th>Predict</th>";
-						echo "<th>Error</th>";
-					echo "</tr>";
-				echo "</tfoot>";
-			echo "</table>";
-
-			//mencari nilai mape departure
-			$departure_all = mysqli_query($conn, "SELECT departure FROM tbl_departure ORDER BY series ASC LIMIT $span,$alldata");
-
-			while ($departure_sigma = mysqli_fetch_array($departure_all)){
-				$depsigma[] = $departure_sigma['departure'];
-			}
-
-			$errormape_departure = mysqli_query($conn, "SELECT error_departure FROM tbl_predict ORDER BY series ASC");
-
-			while ($errorsigma_departure = mysqli_fetch_array($errormape_departure)){
-				$errsigma_departure[] = $errorsigma_departure['error_departure'];
-			}
-
-			$allsigma_departure = 0;
-
-			for($x = 0; $x < $alldata; $x++){
-				$sigma_departure[$x] =  $errsigma_departure[$x] / $depsigma[$x];
-				$allsigma_departure += $sigma_departure[$x];
-			}
-
-			$mape_departure = round((((1/$alldata)*$allsigma_departure)*100), 2);
-
-			echo "<br>MAPE: ";
-			echo $mape_departure."%";
-
 			//output expenditure in
-			echo '<h5 align="center">Tourism Expenditure In The Country - US$ </h5>';
+			echo '<h6 align="center">Tourism Expenditure In The Country - US$ </h6>';
 			echo '<table id="dataTablesExpenditureIn" class="display" cellspacing="0" width="100%">';
 				echo "<thead>";
 					echo "<tr>";
@@ -541,6 +506,150 @@
 			echo "<br>MAPE: ";
 			echo $mape_expenditure_in."%";
 
+			echo '<h4 align="center">Outbound Tourism</h4>';
+
+			echo '<hr>';
+
+			//output departure
+			echo '<h6 align="center">Departure - Thousands</h6>';
+			echo '<table id="dataTablesdeparture" class="display" cellspacing="0" width="100%">';
+				echo "<thead>";
+					echo "<tr>";
+						echo "<th>No</th>";
+						echo "<th>Series</th>";
+						echo "<th>Departure</th>";
+						echo "<th>Predict</th>";
+						echo "<th>Error</th>";
+
+					echo "</tr>";
+				echo "</thead>";
+
+				echo "<tbody>";
+				$no = 1;
+				$res = $conn->query("SELECT * FROM tbl_predict LEFT JOIN tbl_departure ON tbl_predict.series = tbl_departure.series UNION SELECT * FROM tbl_predict RIGHT JOIN tbl_departure ON tbl_predict.series = tbl_departure.series ORDER BY 11");
+
+
+					while($response = $res->fetch_assoc()){
+						echo "<tr>";
+
+						echo "<td>".$no."</td>";
+						echo "<td>".$response['series']."</td>";
+						echo "<td>".$response['departure']."</td>";
+						echo "<td>".$response['wema_departure']."</td>";
+						echo "<td>".$response['error_departure']."</td>";
+						echo "</tr>";
+
+						$no++;
+					}
+
+
+				echo "</tbody>";
+				echo "<tfoot>";
+					echo "<tr>";
+						echo "<th>No</th>";
+						echo "<th>Series</th>";
+						echo "<th>Departure</th>";
+						echo "<th>Predict</th>";
+						echo "<th>Error</th>";
+					echo "</tr>";
+				echo "</tfoot>";
+			echo "</table>";
+
+			//mencari nilai mape departure
+			$departure_all = mysqli_query($conn, "SELECT departure FROM tbl_departure ORDER BY series ASC LIMIT $span,$alldata");
+
+			while ($departure_sigma = mysqli_fetch_array($departure_all)){
+				$depsigma[] = $departure_sigma['departure'];
+			}
+
+			$errormape_departure = mysqli_query($conn, "SELECT error_departure FROM tbl_predict ORDER BY series ASC");
+
+			while ($errorsigma_departure = mysqli_fetch_array($errormape_departure)){
+				$errsigma_departure[] = $errorsigma_departure['error_departure'];
+			}
+
+			$allsigma_departure = 0;
+
+			for($x = 0; $x < $alldata; $x++){
+				$sigma_departure[$x] =  $errsigma_departure[$x] / $depsigma[$x];
+				$allsigma_departure += $sigma_departure[$x];
+			}
+
+			$mape_departure = round((((1/$alldata)*$allsigma_departure)*100), 2);
+
+			echo "<br>MAPE: ";
+			echo $mape_departure."%";
+
+			//output expenditure out
+			echo '<h6 align="center">Tourism Expenditure In Other Countries - US$ </h6>';
+			echo '<table id="dataTablesExpenditureOut" class="display" cellspacing="0" width="100%">';
+				echo "<thead>";
+					echo "<tr>";
+						echo "<th>No</th>";
+						echo "<th>Series</th>";
+						echo "<th>Tourism Expenditure</th>";
+						echo "<th>Predict</th>";
+						echo "<th>Error</th>";
+
+					echo "</tr>";
+				echo "</thead>";
+
+				echo "<tbody>";
+				$no = 1;
+				$res = $conn->query("SELECT * FROM tbl_predict LEFT JOIN tbl_expenditure_out ON tbl_predict.series = tbl_expenditure_out.series UNION SELECT * FROM tbl_predict RIGHT JOIN tbl_expenditure_out ON tbl_predict.series = tbl_expenditure_out.series ORDER BY 11");
+
+
+					while($response = $res->fetch_assoc()){
+						echo "<tr>";
+
+						echo "<td>".$no."</td>";
+						echo "<td>".$response['series']."</td>";
+						echo "<td>".$response['expenditure_out']."</td>";
+						echo "<td>".$response['wema_expenditure_out']."</td>";
+						echo "<td>".$response['error_expenditure_out']."</td>";
+						echo "</tr>";
+
+						$no++;
+					}
+
+
+				echo "</tbody>";
+				echo "<tfoot>";
+					echo "<tr>";
+						echo "<th>No</th>";
+						echo "<th>Series</th>";
+						echo "<th>Tourism Expenditure</th>";
+						echo "<th>Predict</th>";
+						echo "<th>Error</th>";
+					echo "</tr>";
+				echo "</tfoot>";
+			echo "</table>";
+
+			//mencari nilai mape expenditure out
+			$expenditure_out_all = mysqli_query($conn, "SELECT expenditure_out FROM tbl_expenditure_out ORDER BY series ASC LIMIT $span,$alldata");
+
+			while ($expenditure_out_sigma = mysqli_fetch_array($expenditure_out_all)){
+				$outsigma[] = $expenditure_out_sigma['expenditure_out'];
+			}
+
+			$errormape_expenditure_out = mysqli_query($conn, "SELECT error_expenditure_out FROM tbl_predict ORDER BY series ASC");
+
+			while ($errorsigma_expenditure_out = mysqli_fetch_array($errormape_expenditure_out)){
+				$errsigma_expenditure_out[] = $errorsigma_expenditure_out['error_expenditure_out'];
+			}
+
+			$allsigma_expenditure_out = 0;
+
+			for($z = 0; $z < $alldata; $z++){
+				$sigma_expenditure_out[$z] =  $errsigma_expenditure_out[$z] / $insigma[$z];
+				$allsigma_expenditure_out += $sigma_expenditure_out[$z];
+			}
+
+			$mape_expenditure_out = round((((1/$alldata)*$allsigma_expenditure_out)*100), 2);
+
+			echo "<br>MAPE: ";
+			echo $mape_expenditure_out."%";
+
 		}
 		?>
 	</div>
@@ -563,6 +672,11 @@
 	<script>
 	$(document).ready(function() {
 		$('#dataTablesExpenditureIn').DataTable();
+	} );
+	</script>
+	<script>
+	$(document).ready(function() {
+		$('#dataTablesExpenditureOut').DataTable();
 	} );
 	</script>
     </body>
