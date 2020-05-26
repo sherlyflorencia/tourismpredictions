@@ -90,12 +90,6 @@
 					<input type="password" name="password" class="form-control" required>
 				</div>
 			</div>
-			<div class="form-group row">
-				<label class="col-sm-2 col-form-label">Confirm Password</label>
-				<div class="col-sm-10">
-					<input type="password" class="form-control" required>
-				</div>
-			</div>
             <div class="form-group row">
                 <label class="col-sm-2 col-form-label">Date Of Birth</label>
                 <div class="col-sm-10">
