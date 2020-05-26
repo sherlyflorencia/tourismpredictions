@@ -323,13 +323,13 @@
       <h2 align="center">LOGIN</h2>
       <div class="input-container">
         <i class="fa fa-user icon"></i>
-        <input class="input-field" type="text" placeholder="Enter Username. . ." name="username" required>
+        <input class="input-field" type="text" placeholder="Enter Username..." name="username" required>
       </div>
 
 
       <div class="input-container">
         <i class="fa fa-key icon"></i>
-        <input class="input-field" type="password" placeholder="Enter Password. . ." name="password" required>
+        <input class="input-field" type="password" placeholder="Enter Password..." name="password" required>
       </div>
 
       <button value="Login" type="submit" class="btn">Login</button>

@@ -91,7 +91,7 @@
 		<hr>
 
 		<?php
-			$conn = new mysqli("localhost", "root", "", "dbtourism");
+			$conn = new mysqli("localhost", "root", "", "tourism");
 			if ($conn->connect_errno) {
 				echo "Failed to connect to MySQL: " . $conn->connect_error;
 			}
@@ -202,7 +202,7 @@
 			$alldata = (11 - $span);
 			$limit = 0;
 
-			for ($x = 0; $x < $alldata; $x++){
+			for ($a = 0; $a < $alldata; $a++){
 
 				//ambil data arrival sesuai span
 				$dataarrival = mysqli_query($conn, "SELECT arrival FROM tbl_arrival ORDER BY tbl_arrival.arrival ASC LIMIT $limit,$span");
@@ -260,7 +260,6 @@
 				$spanyear++;
 
 				//arrival
-				$predicttourist = 0;
 				$htarrival = 0;
 				$temparrival = 0;
 				$weightarrival = $_POST['span'];
