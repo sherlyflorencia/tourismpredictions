@@ -205,32 +205,40 @@
 			for ($a = 0; $a < $alldata; $a++){
 
 				//ambil data arrival sesuai span
-				$dataarrival = mysqli_query($conn, "SELECT arrival FROM tbl_arrival ORDER BY tbl_arrival.arrival ASC LIMIT $limit,$span");
+				$dataarrival = mysqli_query($conn, "SELECT arrival FROM tbl_arrival LIMIT $limit,$span");
 
 				while ($arrayarrival = mysqli_fetch_array($dataarrival)){
 					$arrival[] = $arrayarrival['arrival'];
 				}
 
+				rsort($arrival);
+
 				//ambil data departure sesuai span
-				$datadeparture = mysqli_query($conn, "SELECT departure FROM tbl_departure ORDER BY tbl_departure.departure ASC LIMIT $limit,$span");
+				$datadeparture = mysqli_query($conn, "SELECT departure FROM tbl_departure LIMIT $limit,$span");
 
 				while ($arraydeparture = mysqli_fetch_array($datadeparture)){
 					$departure[] = $arraydeparture['departure'];
 				}
 
+				rsort($departure);
+
 				//ambil data expenditure in sesuai span
-				$data_expenditure_in = mysqli_query($conn, "SELECT expenditure_in FROM tbl_expenditure_in ORDER BY tbl_expenditure_in.expenditure_in ASC LIMIT $limit,$span");
+				$data_expenditure_in = mysqli_query($conn, "SELECT expenditure_in FROM tbl_expenditure_in LIMIT $limit,$span");
 
 				while ($array_expenditure_in = mysqli_fetch_array($data_expenditure_in)){
 					$expenditure_in[] = $array_expenditure_in['expenditure_in'];
 				}
 
+				rsort($expenditure_in);
+
 				//ambil data expenditure out sesuai span
-				$data_expenditure_out = mysqli_query($conn, "SELECT expenditure_out FROM tbl_expenditure_out ORDER BY tbl_expenditure_out.expenditure_out ASC LIMIT $limit,$span");
+				$data_expenditure_out = mysqli_query($conn, "SELECT expenditure_out FROM tbl_expenditure_out LIMIT $limit,$span");
 
 				while ($array_expenditure_out = mysqli_fetch_array($data_expenditure_out)){
 					$expenditure_out[] = $array_expenditure_out['expenditure_out'];
 				}
+
+				rsort($expenditure_out);
 
 				//limit akan bertambah
 				$limit ++;
@@ -334,7 +342,7 @@
 				$alpha = 2 / ($span + 1);
 
 				//mencari nilai wema arrival
-				$wema_arrival = round(($alpha * $now_arrival['arrival']) + ((1 - $alpha) * $htarrival), 2);
+				$wema_arrival = round((($alpha * $now_arrival['arrival']) + ((1 - $alpha) * $htarrival)), 2);
 
 				//mencari nilai error arrival
 				$error_arrival = abs($now_arrival['arrival'] - $wema_arrival);
